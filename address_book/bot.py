@@ -50,14 +50,13 @@ class Bot:
             'search notes': self.search_notes,
             'remove note': self.remove_note,
             'edit note': self.edit_note,
-            'create tag': self.create_tag,
-            'link tag': self.link_tag,
             'show notes': self.show_notes,
             'find notes by tags': self.search_notes_by_tags,
             'edit phone': self.edit_phone,
             'edit birthday': self.edit_birthday,
             'edit email': self.edit_email,
-            'edit address': self.edit_address
+            'edit address': self.edit_address,
+            'add tag': self.add_tag
         }
 
         self.completer = self.set_compliter()
@@ -289,7 +288,8 @@ class Bot:
     def write_note(self):
         title = input('Please, enter the title: ')
         text = input('Please, enter the text. You can leave this field empty: ')
-        return self.notes.add_note(title, text)
+        tag = input('Please, enter the tag. You can leave this field empty: ')
+        return self.notes.add_note(title, text, tag)
 
     @input_error
     def remove_note(self):
@@ -324,11 +324,8 @@ class Bot:
     @input_error
     def search_notes_by_tags(self):
         tag_name = input('Please, enter the tag name: ')
-        tag_id = self.notes.get_tag_id(tag_name)
-        if tag_id == None:
-            return f"There is no such tag {tag_name}"
-
-        return self.notes.find_notes_by_tag(tag_id=tag_id)
+    
+        return self.notes.find_notes_by_tag(tag_name)
 
     def folder_sort(self):
         target_folder_path = input('Please, enter the path to folder: ')
@@ -372,15 +369,11 @@ class Bot:
         return self.notes.find_notes(note_to_search).get_notes()
 
     @input_error
-    def create_tag(self) -> str:
+    def add_tag(self) -> str:
         tag = input('Please, enter the title of the tag: ').strip()
-        return self.notes.tags.add_tag(tag)
+        title = input('Please, enter the title of the note: ').strip()
 
-    @input_error
-    def link_tag(self) -> str:
-        note_title = input('Please, input the title of note you want to add: ')
-        tag_name = input('Please, input the name of tag you want to add: ')
-        return self.notes.add_tag_for_note(tag_name, note_title)
+        return self.notes.add_tag_for_note(tag, title)
 
     def show_notes(self) -> str:
         return self.notes.get_notes()
