@@ -1,12 +1,18 @@
 from collections import UserDict
 from datetime import datetime, date
+from abc import ABC, abstractmethod
 import re
+from typing import List
 
-class Field:
+class Field(ABC):
     def __init__(self, value):
         if not self.is_valid(value):
             raise ValueError
         self.__value = value
+
+    @abstractmethod
+    def is_valid(self, value):
+        raise NotImplementedError
 
     @property
     def value(self):
@@ -20,27 +26,20 @@ class Field:
 
     def __str__(self):
         return str(self.value)
-    
-    def is_valid(self, value):
-        return True
-    
 
 class Name(Field):
-    # реалізація класу
     pass
 
 
 class Phone(Field):
-    # реалізація класу
     def is_valid(self, value):
         return value.isdigit() and len(value) == 10
-    
-    def __eq__(self, phone):
-        if type(phone) != Phone:
-            return False
-        return self.value == phone.value
-    
+
+
 class Address(Field):
+    def is_valid(self, value):
+        return True
+    
     def __str__(self):
         return str(self.value)
 
@@ -65,50 +64,28 @@ class Email(Field):
             return re.fullmatch(r'([a-zA-Z]{1}[a-zA-Z0-9._]{1,}@[a-zA-Z]+\.[a-zA-Z]{2,})', value)
         return False
             
-        
 
 class Record:
-    # реалізація класу
-    def __init__(self, name, phone=None, birthday=None, email=None, address=None):
+    def __init__(self, name: Name, phone: List[Phone], birthday: Birthday, email: Email, address: Address):
         self.name = Name(name)
-        self.phones = list()
-        if type(phone) == str():
-            self.phones.append(Phone(phone))
-        elif type(phone) == Phone:
-            self.phones.append(phone)
-        
-        if type(birthday) == str():
-            self.birthday = Birthday(birthday)
-        elif type(birthday) == Birthday:
-            self.birthday = birthday
-        else:
-            self.birthday = 'Not set'
-        
-        if type(email) == str():
-            self.email = Email(email)
-        elif type(email) == Email:
-            self.email = email
-        else:
-            self.email = 'Not set'
-
-        if type(address) == str:
-            self.address = Address(address)
-        elif type(address) == Address:
-            self.address = address
-        else:
-            self.address = 'Not set'
+        self.phones = []
+        if phone:
+            self.phones.append(Phone(phone.value))
+        self.birthday = Birthday(birthday).value if birthday != "Not set" else birthday
+        self.email = Email(email).value if email != "Not set" else email
+        self.address = Address(address).value if address != "Not set" else address
     
-    def add_phone(self, phone: str):
+    def add_phone(self, phone: Field):
         phone = Phone(phone)
         if phone not in self.phones:
             self.phones.append(phone)
 
-    def remove_phone(self, phone: str):
+    def remove_phone(self, phone: Field):
         for i in self.phones:
             if i.value == phone:
                 self.phones.remove(i)
 
-    def change_phone(self, phone:str=None, new_phone:str=None, phone_obj:Phone=None, new_phone_obj:Phone=None):
+    def change_phone(self, phone:Phone=None, new_phone:Phone=None, phone_obj:Phone=None, new_phone_obj:Phone=None):
         if phone != None and new_phone != None:
             phone = Phone(phone)
             new_phone = Phone(new_phone)
@@ -132,18 +109,14 @@ class Record:
         email = Email(email)
         self.email = str(email)
 
-    def change_address(self, address):
-        if type(address) != Address:
-            self.address = Address(address)
-        elif type(address) == Address:
-            self.address = address
-        else:
-            raise AttributeError("Unknown type of address in 'change_address'")
+    def change_address(self, address: Address):
+        self.address = Address(address)
+       
                 
-    def find_phone(self, phone: str):
+    def find_phone(self, phone: Phone):
         for i in self.phones:
-            if i.value == phone:
-                return i
+            if i.value == phone.value:
+                return i.value
         return None
     
     def days_to_birthday(self, birthday):
@@ -168,13 +141,9 @@ class Record:
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday}, email: {self.email}, address: {self.address}"
     
-    def __eq__(self, record):
-        if type(record) != Record:
-            return False
-        return self.name == record.name
 
 class AddressBook(UserDict):
-    # реалізація класу
+
     def add_record(self, record):
         if record.name.value in self.data:
             return self.data[record.name.value]

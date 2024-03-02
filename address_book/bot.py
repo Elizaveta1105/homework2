@@ -313,12 +313,12 @@ class Bot:
         print('Good Bye')
         sys.exit()
 
+    @input_error
     def search_phone(self):
         phone_to_search = self.phone_input()
-        result = []
+        result = None
         for record in self.book.data.values():
-            if phone_to_search in record.name.value + ' '.join([phone.value for phone in record.phones]):
-                result.append(str(record))
+            result = record.find_phone(phone_to_search)
         return result
 
     @input_error
